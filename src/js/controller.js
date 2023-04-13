@@ -15,10 +15,6 @@ const timeout = function (s) {
   });
 };
 
-// https://forkify-api.herokuapp.com/v2
-
-///////////////////////////////////////
-
 const controlRecipes = async () => {
   try {
     const id = window.location.hash.slice(1);
@@ -33,7 +29,7 @@ const controlRecipes = async () => {
     // 2. Rendering
     recipeView.render(model.state.recipe);
   } catch (error) {
-    alert(error);
+    console.error(`${error} 💥`);
   }
 };
 
