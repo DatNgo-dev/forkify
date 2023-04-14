@@ -3,12 +3,15 @@ import icon from 'url:../../img/icons.svg'; // Parcel 2
 export default class View {
   _data;
 
-  render(data) {
+  render(data, render = true) {
     if (!data || (Array.isArray(data) && data.length === 0)) {
       return this.renderError();
     }
     this._data = data;
     const markup = this._generateMarkup();
+
+    if (!render) return markup;
+
     this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', markup);
   }
@@ -17,14 +20,18 @@ export default class View {
     this._data = data;
     const newMarkup = this._generateMarkup();
 
+    // this line create a virtual dom which is saved in memory
     const newDOM = document.createRange().createContextualFragment(newMarkup);
     const newElements = Array.from(newDOM.querySelectorAll('*'));
     const curElements = Array.from(this._parentElement.querySelectorAll('*'));
 
+    // compare the new dom with the old dom
     newElements.forEach((newEl, i) => {
       const curEl = curElements[i];
       // Updates changed TEXT
       if (
+        // isEqualNode() method returns true if the two nodes are the same node,
+        // or false if they are different nodes.
         !newEl.isEqualNode(curEl) &&
         newEl.firstChild?.nodeValue.trim() !== ''
       ) {

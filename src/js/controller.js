@@ -6,6 +6,7 @@ import recipeView from './views/recipeView.js';
 import resultsView from './views/resultsView.js';
 import searchView from './views/searchView.js';
 import paginationView from './views/paginationView.js';
+import bookmarksView from './views/bookmarksView.js';
 
 // This is from the Parcel docs:
 if (module.hot) {
@@ -19,10 +20,15 @@ const controlRecipes = async () => {
     if (!id) return;
     recipeView.renderSpinner();
 
-    // 1. Loading
+    // 0 Update results view to mark selected search result
+    resultsView.update(model.getSearchResultsPage());
+    // 1. Updating bookmarks view
+    bookmarksView.update(model.state.bookmarks);
+
+    // 2. Loading
     await model.loadRecipe(id);
 
-    // 2. Rendering
+    // 3. Rendering
     recipeView.render(model.state.recipe);
   } catch (error) {
     console.error(`${error} 💥`);
@@ -57,8 +63,35 @@ const controlPagination = goToPage => {
   paginationView.render(model.state.search);
 };
 
+const controlServings = newServing => {
+  // Update the recipe servings (in state)
+  model.updateServings(newServing);
+  // Update the recipe view
+  // recipeView.render(model.state.recipe);
+  recipeView.update(model.state.recipe);
+};
+
+const controlAddBookmark = () => {
+  // 1. Add/remove bookmark
+  if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe);
+  else model.deleteBookmark(model.state.recipe.id);
+
+  // 2. Update recipe view
+  recipeView.update(model.state.recipe);
+
+  // 3. Render bookmarks
+  bookmarksView.render(model.state.bookmarks);
+};
+
+const controlBookmarks = () => {
+  bookmarksView.render(model.state.bookmarks);
+};
+
 const init = () => {
+  bookmarksView.addHandlerRender(controlBookmarks);
   recipeView.addHandlerRender(controlRecipes);
+  recipeView.addHandlerUpdateServings(controlServings);
+  recipeView.addHandlerAddBookmark(controlAddBookmark);
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
 };
