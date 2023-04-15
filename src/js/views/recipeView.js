@@ -29,6 +29,13 @@ class RecipeView extends View {
             }</span>
             <span class="recipe__info-text">minutes</span>
           </div>
+
+          <div class="recipe__info">
+            <span class="recipe__info-data recipe__info-data--minutes">${
+              this._data.calories ? this._data.calories + 'kcal' : 'N/A'
+            }</span>
+          </div>
+
           <div class="recipe__info">
             <svg class="recipe__info-icon">
               <use href="${icon}#icon-users"></use>

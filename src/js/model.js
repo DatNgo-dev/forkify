@@ -1,5 +1,11 @@
 import { async } from 'regenerator-runtime';
-import { API_URL, RES_PER_PAGE, KEY } from './config';
+import {
+  API_URL,
+  RES_PER_PAGE,
+  KEY,
+  SPOONACULAR_API_URL,
+  SPOONACULAR_KEY,
+} from './config';
 import { AJAX } from './helper';
 
 export const state = {
@@ -28,10 +34,33 @@ const createRecipeObject = data => {
   };
 };
 
+const init = function () {
+  const storage = localStorage.getItem('bookmarks');
+  if (storage) state.bookmarks = JSON.parse(storage);
+};
+
+const clearBookmarks = function () {
+  localStorage.clear('bookmarks');
+};
+
 export const loadRecipe = async function (id) {
   try {
+    // make API call for getting recipe
     const data = await AJAX(`${API_URL}${id}?key=${KEY}`);
+
+    // create RECIPE object
     state.recipe = createRecipeObject(data);
+
+    const recipeID = await AJAX(
+      `${SPOONACULAR_API_URL}complexSearch?apiKey=${SPOONACULAR_KEY}&query=${state.recipe.title}`
+    );
+
+    if (recipeID.totalResults !== 0) {
+      const caloriesInfo = await AJAX(
+        `${SPOONACULAR_API_URL}${recipeID.results[0].id}/nutritionWidget.json?apiKey=${SPOONACULAR_KEY}`
+      );
+      state.recipe.calories = caloriesInfo.calories;
+    }
 
     if (state.bookmarks.some(bookmark => bookmark.id === id))
       state.recipe.bookmarked = true;
@@ -102,19 +131,6 @@ export const deleteBookmark = function (id) {
   persistBookmarks();
 };
 
-const init = function () {
-  const storage = localStorage.getItem('bookmarks');
-  if (storage) state.bookmarks = JSON.parse(storage);
-};
-
-init();
-
-const clearBookmarks = function () {
-  localStorage.clear('bookmarks');
-};
-
-// clearBookmarks();
-
 export const uploadRecipe = async function (newRecipe) {
   try {
     const ingredients = Object.entries(newRecipe)
@@ -148,3 +164,6 @@ export const uploadRecipe = async function (newRecipe) {
     throw error;
   }
 };
+
+init();
+// clearBookmarks();

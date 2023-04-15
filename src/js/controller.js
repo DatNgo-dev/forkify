@@ -24,6 +24,7 @@ const controlRecipes = async () => {
 
     // 0 Update results view to mark selected search result
     resultsView.update(model.getSearchResultsPage());
+
     // 1. Updating bookmarks view
     bookmarksView.update(model.state.bookmarks);
 
@@ -117,6 +118,13 @@ const controlAddRecipe = newRecipe => {
     console.error('💥', error);
     addRecipeView.renderError(error.message);
   }
+};
+
+const controlGetIngredients = async ing => {
+  // 1. Get ingredients
+  const ingredients = await model.getIngredients(ing);
+
+  // 2. Render ingredients
 };
 
 const init = () => {

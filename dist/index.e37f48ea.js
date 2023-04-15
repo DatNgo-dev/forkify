@@ -657,6 +657,11 @@ const controlAddRecipe = (newRecipe)=>{
         (0, _addRecipeViewJsDefault.default).renderError(error.message);
     }
 };
+const controlGetIngredients = async (ing)=>{
+    // 1. Get ingredients
+    const ingredients = await _modelJs.getIngredients(ing);
+// 2. Render ingredients
+};
 const init = ()=>{
     (0, _bookmarksViewJsDefault.default).addHandlerRender(controlBookmarks);
     (0, _recipeViewJsDefault.default).addHandlerRender(controlRecipes);
@@ -2714,10 +2719,24 @@ const createRecipeObject = (data)=>{
         }
     };
 };
+const init = function() {
+    const storage = localStorage.getItem("bookmarks");
+    if (storage) state.bookmarks = JSON.parse(storage);
+};
+const clearBookmarks = function() {
+    localStorage.clear("bookmarks");
+};
 const loadRecipe = async function(id) {
     try {
+        // make API call for getting recipe
         const data = await (0, _helper.AJAX)(`${(0, _config.API_URL)}${id}?key=${(0, _config.KEY)}`);
+        // create RECIPE object
         state.recipe = createRecipeObject(data);
+        const recipeID = await (0, _helper.AJAX)(`${(0, _config.SPOONACULAR_API_URL)}complexSearch?apiKey=${(0, _config.SPOONACULAR_KEY)}&query=${state.recipe.title}`);
+        if (recipeID.totalResults !== 0) {
+            const caloriesInfo = await (0, _helper.AJAX)(`${(0, _config.SPOONACULAR_API_URL)}${recipeID.results[0].id}/nutritionWidget.json?apiKey=${(0, _config.SPOONACULAR_KEY)}`);
+            state.recipe.calories = caloriesInfo.calories;
+        }
         if (state.bookmarks.some((bookmark)=>bookmark.id === id)) state.recipe.bookmarked = true;
         else state.recipe.bookmarked = false;
     } catch (error) {
@@ -2774,14 +2793,6 @@ const deleteBookmark = function(id) {
     if (id === state.recipe.id) state.recipe.bookmarked = false;
     persistBookmarks();
 };
-const init = function() {
-    const storage = localStorage.getItem("bookmarks");
-    if (storage) state.bookmarks = JSON.parse(storage);
-};
-init();
-const clearBookmarks = function() {
-    localStorage.clear("bookmarks");
-};
 const uploadRecipe = async function(newRecipe) {
     try {
         const ingredients = Object.entries(newRecipe).filter((entry)=>entry[0].startsWith("ingredient") && entry[1] !== "").map((ing)=>{
@@ -2811,17 +2822,22 @@ const uploadRecipe = async function(newRecipe) {
         throw error;
     }
 };
+init(); // clearBookmarks();
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","regenerator-runtime":"dXNgZ","./config":"k5Hzs","./helper":"lVRAz"}],"k5Hzs":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "API_URL", ()=>API_URL);
 parcelHelpers.export(exports, "KEY", ()=>KEY);
+parcelHelpers.export(exports, "SPOONACULAR_API_URL", ()=>SPOONACULAR_API_URL);
+parcelHelpers.export(exports, "SPOONACULAR_KEY", ()=>SPOONACULAR_KEY);
 parcelHelpers.export(exports, "TIMEOUT_SEC", ()=>TIMEOUT_SEC);
 parcelHelpers.export(exports, "RES_PER_PAGE", ()=>RES_PER_PAGE);
 parcelHelpers.export(exports, "MODEL_CLOSE_SEC", ()=>MODEL_CLOSE_SEC);
 const API_URL = "https://forkify-api.herokuapp.com/api/v2/recipes/";
 const KEY = "8b9550df-fde1-4229-b574-737c34a18dfd";
+const SPOONACULAR_API_URL = "https://api.spoonacular.com/recipes/";
+const SPOONACULAR_KEY = "9ec67ea9e1954093ae688d3aa0b48003";
 const TIMEOUT_SEC = 10;
 const RES_PER_PAGE = 7;
 const MODEL_CLOSE_SEC = 2.5;
@@ -2888,6 +2904,11 @@ class RecipeView extends (0, _viewJsDefault.default) {
             <span class="recipe__info-data recipe__info-data--minutes">${this._data.cookingTime}</span>
             <span class="recipe__info-text">minutes</span>
           </div>
+
+          <div class="recipe__info">
+            <span class="recipe__info-data recipe__info-data--minutes">${this._data.calories ? this._data.calories + "kcal" : "N/A"}</span>
+          </div>
+
           <div class="recipe__info">
             <svg class="recipe__info-icon">
               <use href="${0, _iconsSvgDefault.default}#icon-users"></use>
