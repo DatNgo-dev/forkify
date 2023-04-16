@@ -120,13 +120,6 @@ const controlAddRecipe = newRecipe => {
   }
 };
 
-const controlGetIngredients = async ing => {
-  // 1. Get ingredients
-  const ingredients = await model.getIngredients(ing);
-
-  // 2. Render ingredients
-};
-
 const init = () => {
   bookmarksView.addHandlerRender(controlBookmarks);
   recipeView.addHandlerRender(controlRecipes);
